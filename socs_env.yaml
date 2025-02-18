@@ -1,0 +1,23 @@
+name: socs_env
+channels:
+- conda-forge
+dependencies:
+  - python=3.9
+  - pip:
+    - numpy==1.26.4
+    - pandas==2.2.2
+    - seaborn==0.13.2
+    - matplotlib==3.9.2
+    - scikit-learn==1.4.2
+    - jupyter==1.0.0
+    - anndata==0.10.5
+    - scanpy==1.10.3
+    - diffxpy==0.7.4
+    - squidpy==1.2.2
+    - igraph==0.11.8
+    - louvain==0.8.1
+    - scipy==1.13.1
+    - shapely==2.0.5
+    - torch==2.5.1
+    - leidenalg
+    - networkx
