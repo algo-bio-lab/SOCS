@@ -17,7 +17,7 @@ Choose the following parameters: `alpha` (a value between 0 and 1), which trades
 To set up the SOCS problem, initialize the class socs.ot.SOCSModel:\
 `socs_model = socs.ot.SOCSModel(adata,'time',expr_key='X_pca',struct_key='struct',alpha=alpha,eps=eps,rho=rho,rho2=rho2)`
 
-If any structure labels should not be incorporated into the optimization problem, *e.g.* if label 0 indicates that a cell does not belong to a structure, indicate this by adding the argument `struct_excl=[0]` to the initialization.\
+If any structure labels should not be incorporated into the optimization problem, *e.g.* if label 0 indicates that a cell does not belong to a structure, indicate this by adding the argument `struct_excl=[0]` to the initialization.
 
 To run trajectory inference with SOCS, run the command:\
 `T = socs_model.infer_map(t1,t2)`,
