@@ -19,6 +19,8 @@ def hillNumber_1(A):
     return hn_1
 
 def map_vector_sampled(vec,T):
+    if(isinstance(vec,pd.Series)):
+        vec = vec.tolist()
     T_n = row_normalize(T)
     vec_mapped = []
     for x in range(T_n.shape[0]):
