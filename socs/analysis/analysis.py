@@ -19,19 +19,19 @@ def hillNumber_1(A):
     return hn_1
 
 def map_vector_sampled(vec,T):
-    if(isinstance(vec,pd.Series)):
-        vec = vec.tolist()
     T_n = row_normalize(T)
     vec_mapped = []
+    range_1 = np.arange(T_n.shape[1])
     for x in range(T_n.shape[0]):
-        rx = np.random.rand()
-        bins_x = [np.sum(T_n[x,0:z+1]) for z in range(T.shape[1])]
-        bins_x = np.round(bins_x,decimals=2)
-        try:
-            rx_bin = np.digitize(rx,bins_x)
-        except:
-            rx_bin = 0
-            print(x)
+        rx_bin = np.random.choice(range_1,p=T_n[x,:])
+        #rx = np.random.rand()
+        #bins_x = [np.sum(T_n[x,0:z+1]) for z in range(T.shape[1])]
+        #bins_x = np.round(bins_x,decimals=2)
+        #try:
+        #    rx_bin = np.digitize(rx,bins_x)
+        #except:
+        #    rx_bin = 0
+        #    print(x)
         vec_mapped.append(vec[rx_bin])
     return vec_mapped
     
