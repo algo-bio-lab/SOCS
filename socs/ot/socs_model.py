@@ -2,6 +2,7 @@ import sklearn.metrics.pairwise
 import numpy as np
 import torch
 from .fgw_solver import log_ugw_sinkhorn_f
+from fugw.mappings import FUGW
 
 
 class SOCSModel:
