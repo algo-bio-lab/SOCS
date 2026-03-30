@@ -6,7 +6,7 @@ from ot.gromov import fused_unbalanced_gromov_wasserstein,fused_unbalanced_gromo
 from fugw.mappings import FUGW
 
 class SOCSModel:
-    def __init__(self,adata,t_col,spatial_key='spatial',expr_key=None,struct_key=None,block_key=None,gr_key=None,method='ugw',method2='mm',div='kl',**kwargs):
+    def __init__(self,adata,t_col,spatial_key='spatial',expr_key=None,struct_key=None,block_key=None,gr_key=None,method='fugw_cpu',method2='mm',div='kl',**kwargs):
         self.adata = adata
         self.t_col = t_col
         self.spatial_key = spatial_key
@@ -119,7 +119,7 @@ class SOCSModel:
         D01 = torch.tensor(D01,dtype=torch.float64)
         D0 = torch.tensor(D0,dtype=torch.float64)
         D1 = torch.tensor(D1,dtype=torch.float64)
-        if(self.method=='ugw'):
+        if(self.method=='fugw_cpu'):
             pi_01, gamma = log_ugw_sinkhorn_f(p0, D0/f0, p1, D1/f1, D01, self.ot_config['alpha'], init=None, eps=self.ot_config['eps'],
                                     rho=self.ot_config['rho'], rho2=self.ot_config['rho2'],
                                     nits_plan=self.ot_config['nIters'], tol_plan=1e-30,
