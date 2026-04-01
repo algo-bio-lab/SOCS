@@ -6,27 +6,78 @@ from ot.gromov import fused_unbalanced_gromov_wasserstein,fused_unbalanced_gromo
 from fugw.mappings import FUGW
 
 class SOCSModel:
-    def __init__(self,adata,t_col,spatial_key='spatial',expr_key=None,struct_key=None,block_key=None,gr_key=None,method='fugw_cpu',method2='mm',div='kl',**kwargs):
+    """
+    Software implementation of Spatial Optimal transport with Contiguous Structures (SOCS), 
+    a tool for trajectory inference in spatial transcriptomics
+
+    Parameters
+    ----------
+    adata: anndata.AnnData
+        AnnData object containing all relevant spatial transcriptomics data
+    time_key: str
+        Key in adata.obs labeling cells by timepoint
+    spatial_key: str
+        Key in adata.obsm giving cells' spatial coordinates
+    expr_key: str
+        Key in adata.obsm giving cells' gene expression profiles (e.g. 'X_pca'). If None, default to adata.X
+    struct_key:
+        Key in adata.obs labeling cells by contiguously-developing structure
+
+    """
+    def __init__(self,adata,time_key='time',spatial_key='spatial',expr_key=None,struct_key=None,block_key=None,gr_key=None):
+
         self.adata = adata
-        self.t_col = t_col
+        self.time_key = time_key
         self.spatial_key = spatial_key
         self.expr_key = expr_key
         self.struct_key = struct_key
-        self.gr_key = gr_key
-        self.block_key = block_key
-        self.method=method
-        self.method2 = method2
-        self.div = div
-        self.ot_config = {'block_factor':1,'eps':0.01,'dFactor':1,'alpha':0.5,'rho':100,'rho2':100,'tol':1e-7,'tol_ot':1e-7,
-                         'nIters':30,'print_per_iter':None,'struct_excl':[]}
-        for k in kwargs.keys():
-            self.ot_config[k] = kwargs[k]
+        #self.gr_key = gr_key
+        #self.block_key = block_key
+        #self.method=method
+        #self.method2 = method2
+        #self.div = div
+        #self.ot_config = {'block_factor':1,'eps':0.01,'dFactor':1,'alpha':0.5,'rho':100,'rho2':100,'tol':1e-7,'tol_ot':1e-7,
+        #                 'nIters':30,'print_per_iter':None,'struct_excl':[]}
+        #for k in kwargs.keys():
+        #    self.ot_config[k] = kwargs[k]
     def infer_map(self,t0,t1,verbose=False):
+        """
+        Solves the SOCS optimal transport problem, estimating ancestor-descendant relationships between two timepoints.
+
+        Parameters
+        ----------
+        alpha: float
+            Value between 0 and 1 that trades off geometric consistency and gene-expression consistency between ancestors and descendants.
+            Smaller values of alpha will lead to 
+        epsilon: float
+            Value controlling entropy regularization of the optimal transport problem. Higher values of epsilon will lead to more entropic
+            maps, with individual cells in the source (t1) dataset mapping to more cells in the target (t2) dataset.
+        rho1: float
+            Value controlling "unbalanced-ness" of the mapping's rows - that is, how tightly the row-sums of the mapping agree with the prior.
+            Higher values of rho1 will result in more consistent row-sums.
+        rho2: float
+            Value controlling "unbalanced-ness" of the mapping's columns - that is, how tightly the column-sums of the mapping agree with the prior.
+            Higher values of rho2 will result in more consistent column-sums.
+        fb0: float
+            Spatial distance added between cells in the source distribution which do not belong to the same contiguous structure.
+        fb1: float
+            Spatial distance added between cells in the target distribution which do not belong to the same contiguous structure.
+        f0: float
+            Normalization factor to account for the differenc in magnitude between the expression distance matrix and t0 geometric distance matrix
+        f1: float
+            Normalization factor to account for difference in magnitude between the expression distance matrix and t1 geometric distance matrix
+        t0:
+            Source time-point label, as stored in self.adata.obs[self.time_key].
+        t1:
+            Target time-point label, as stored in self.adata.obs[self.time_key].
+        
+            
+        Returns
+        -------
+        tmap: np.ndarray
+            Map from ancestor cells in the source (t0) dataset to descendant cells in the target (t1) dataset.
+        """
         D0,D1,D01 = self.compute_distance_matrices(t0,t1,verbose)
-        if(self.block_key is not None):
-            bVal = np.max(D01)
-            B01 = self.compute_block_matrix(t0,t1,bVal,verbose)
-            D01 = D01+B01
         if('fb0' in self.ot_config.keys()):
             fb_0 = self.ot_config['fb0']
         else:
@@ -46,23 +97,6 @@ class SOCSModel:
             f1 = (np.max(D1)/np.max(D01))**2
         tmap = self.compute_transport_map(D0+S0,D1+S1,D01,f0,f1,t0,t1,verbose)
         return tmap
-    def compute_block_matrix(self,t0,t1,bVal,verbose=False):
-        if(verbose):
-            print('Computing block matrices')
-        adata_0 = self.adata[self.adata.obs[self.t_col]==t0,:]
-        adata_1 = self.adata[self.adata.obs[self.t_col]==t1,:]
-        B01 = np.zeros([adata_0.shape[0],adata_1.shape[0]])
-        for y in range(len(self.block_key)):
-            b_0 = adata_0.obs[self.block_key[y][0]]
-            b_1 = adata_1.obs[self.block_key[y][1]]
-            b_vals = np.unique(b_0)
-            for x in range(len(b_vals)):
-                if(x!=0):
-                    inds_x0 = np.where(b_0==b_vals[x])[0]
-                    inds_x1 = np.where(b_1==b_vals[x])[0]
-                    for z in inds_x0:
-                        B01[z,inds_x1] = bVal*self.ot_config['block_factor']
-        return B01
     def compute_distance_matrices(self,t0,t1,verbose=False):
         if(verbose):
             print('Computing Distance Matrices')
