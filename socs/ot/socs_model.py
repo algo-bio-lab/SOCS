@@ -49,7 +49,7 @@ class SOCSModel:
             t1,
             alpha=0.5,
             epsilon=0.01,
-            rho1=100
+            rho1=100,
             rho2=100,
             fb0=None,
             fb1=None,
