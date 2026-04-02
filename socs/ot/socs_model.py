@@ -22,6 +22,9 @@ class SOCSModel:
         Key in adata.obsm giving cells' gene expression profiles (e.g. 'X_pca'). If None, default to adata.X
     struct_key:
         Key in adata.obs labeling cells by contiguously-developing structure
+    gr_key:
+        Key in adata.obs giving the expected growth rate for each cell: that is, the anticipated number of descendants 
+        of that cell in the next timepoint.
 
     """
     def __init__(self,adata,time_key='time',spatial_key='spatial',expr_key=None,struct_key=None,block_key=None,gr_key=None):
@@ -31,7 +34,7 @@ class SOCSModel:
         self.spatial_key = spatial_key
         self.expr_key = expr_key
         self.struct_key = struct_key
-        #self.gr_key = gr_key
+        self.gr_key = gr_key
         #self.block_key = block_key
         #self.method=method
         #self.method2 = method2
