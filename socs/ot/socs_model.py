@@ -98,6 +98,27 @@ class SOCSModel:
         tmap = self.compute_transport_map(D0+S0,D1+S1,D01,f0,f1,t0,t1,verbose)
         return tmap
     def compute_distance_matrices(self,t0,t1,verbose=False):
+        """
+        Computes the distance matrices associated with two specified timepoints.
+
+        Parameters
+        ----------
+        t0:
+            Source time-point label, as stored in self.adata.obs[self.time_key].
+        t1:
+            Target time-point label, as stored in self.adata.obs[self.time_key].
+        
+        Returns
+        -------
+        D0: np.ndarray
+            Pairwise distance matrix between the spatial coordinates of the cells in the source (t0) dataset
+        D1: np.ndarray
+            Pairwise distance matrix between the spatial coordinates of the cells in the target (t1) dataset
+        D01: np.ndarray
+            Pairwise distance matrix between the gene expression vectors of the cells in the source (t0) dataset and the
+            gene expression vectors of the cells in the target (t1) dataset
+
+        """
         if(verbose):
             print('Computing Distance Matrices')
         adata_0 = self.adata[self.adata.obs[self.t_col]==t0,:]
@@ -115,6 +136,30 @@ class SOCSModel:
         D1 = np.ascontiguousarray(sklearn.metrics.pairwise.pairwise_distances(xy_1,Y=xy_1,metric='euclidean',n_jobs=1))
         return D0,D1,D01
     def compute_struct_matrices(self,t0,t1,fb_0,fb_1,verbose=False):
+        """
+        Computes the structural distance matrices associated with two specified timepoints (t0 and t1). These are added to the spatial distance
+        matrices to constrain the optimal transport problem so that cells in t0 belonging to the same structure have descendants in t1 belonging
+        to the same structure.
+
+        Parameters
+        ----------
+        t0:
+            Source time-point label, as stored in self.adata.obs[self.time_key].
+        t1:
+            Target time-point label, as stored in self.adata.obs[self.time_key].
+        fb0: float
+            Spatial distance to be added between cells in the source distribution which do not belong to the same contiguous structure.
+        fb1: float
+            Spatial distance to be added between cells in the target distribution which do not belong to the same contiguous structure.
+        
+        Returns
+        -------
+        S_0: np.ndarray
+            Pairwise structural distance matrix between cells in the source (t0) dataset
+        S_1: np.ndarray
+            Pairwise structural distance matrix between cells in the target (t1) dataset
+
+        """
         if(verbose):
             print('Computing Structural Contiguity Distance Matrices')
         adata_0 = self.adata[self.adata.obs[self.t_col]==t0,:]
@@ -139,6 +184,39 @@ class SOCSModel:
                 S_1[inds_s[y],inds_ns] = fb_1
         return S_0,S_1
     def compute_transport_map(self,D0,D1,D01,f0,f1,t0,t1,method,verbose=False):
+        """
+        Computes a transport map between cells at two specified timepoints (t0 and t1), using the Fused Unbalanced Gromov-Wasserstein
+        Optimal Transport Formulation.
+
+        Parameters
+        ----------
+        D0: np.ndarray
+            Pairwise distance matrix between the spatial coordinates of the cells in the source (t0) dataset (including additional
+            structure distances)
+        D1: np.ndarray
+            Pairwise distance matrix between the spatial coordinates of the cells in the target (t1) dataset (including additional
+            structure distances)
+        D01: np.ndarray
+            Pairwise distance matrix between the gene expression vectors of the cells in the source (t0) dataset and the
+            gene expression vectors of the cells in the target (t1) dataset
+        f0: float
+            Normalization factor to account for the differenc in magnitude between the expression distance matrix and t0 geometric distance matrix
+        f1: float
+            Normalization factor to account for difference in magnitude between the expression distance matrix and t1 geometric distance matrix
+        t0:
+            Source time-point label, as stored in self.adata.obs[self.time_key].
+        t1:
+            Target time-point label, as stored in self.adata.obs[self.time_key].
+        method: str
+            Solver to use for the optimal transport problem. Options are 'fugw_cpu', which uses a modified version of UGW solver described in
+            Sejourne et al. (2021), and 'fugw_gpu', which uses a GPU-accelerated version, described in Thual et al. (2022).
+        
+        Returns
+        -------
+        pi_01: np.ndarray
+            Map from ancestor cells in the source (t0) dataset to descendant cells in the target (t1) dataset.
+
+        """
         if(verbose):
             print('Computing Transport Map')
         p0 = np.ones([D0.shape[0],])/D0.shape[0]
@@ -159,10 +237,6 @@ class SOCSModel:
                                     nits_plan=self.ot_config['nIters'], tol_plan=1e-30,
                                     nits_sinkhorn=10, tol_sinkhorn=1e-9,
                                     two_outputs=False,print_per_iter=None,alt=0)
-        elif(self.method=='pot'):
-            dFactor = self.ot_config['dFactor']
-            pi_01,_= fused_unbalanced_gromov_wasserstein(D0/(f0*dFactor),D1/(f1*dFactor),wx=p0,wy=p1,reg_marginals=[self.ot_config['rho'],self.ot_config['rho2']],
-                            epsilon=self.ot_config['eps'],alpha=self.ot_config['alpha'],M=D01/dFactor,max_iter=self.ot_config['nIters'],unbalanced_solver=self.method2,divergence=self.div,tol=self.ot_config['tol'],tol_ot=self.ot_config['tol_ot'],verbose=True)
         elif(self.method=='fugw_gpu'):
             adata_0 = self.adata[self.adata.obs[self.t_col]==t0,:]
             adata_1 = self.adata[self.adata.obs[self.t_col]==t1,:]
@@ -175,6 +249,8 @@ class SOCSModel:
             mapping = FUGW(alpha=self.ot_config['alpha'],eps=self.ot_config['eps'],rho=self.ot_config['rho'])
             _ = mapping.fit(expr_0.T,expr_1.T,source_geometry=D0,target_geometry=D1)
             pi_01 = mapping.pi
+        else:
+            raise ValueError("Invalid method. Options are 'fugw_cpu' and 'fugw_gpu'.")
         return pi_01.numpy()
         
 
