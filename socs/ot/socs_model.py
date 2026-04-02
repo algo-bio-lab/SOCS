@@ -57,6 +57,7 @@ class SOCSModel:
             f1=None,
             max_iters=1000,
             struct_excl=[],
+            method='fugw_cpu',
             verbose=False
         ):
         """
@@ -93,6 +94,9 @@ class SOCSModel:
         struct_excl: list
             List of structure labels to be excluded from the structural constraint. That is, if there are any labeled structures which are not expected
             to evolve as a unit, they should be listed here.
+        method: str
+            Solver to use for the optimal transport problem. Options are 'fugw_cpu', which uses a modified version of UGW solver described in
+            Sejourne et al. (2021), and 'fugw_gpu', which uses a GPU-accelerated version, described in Thual et al. (2022).
         
             
         Returns
@@ -101,6 +105,10 @@ class SOCSModel:
             Map from ancestor cells in the source (t0) dataset to descendant cells in the target (t1) dataset.
         """
         self.ot_config = {'eps':epsilon,'alpha':alpha,'rho':rho1,'rho2':rho2,'nIters':max_iters,'struct_excl':struct_excl}
+        if fb0 is not None:
+            self.ot_config['fb0'] = fb0
+        if fb1 is not None:
+            self.ot_config['fb1'] = fb1
         D0,D1,D01 = self.compute_distance_matrices(t0,t1,verbose)
         if('fb0' in self.ot_config.keys()):
             fb_0 = self.ot_config['fb0']
@@ -119,7 +127,7 @@ class SOCSModel:
             f1 = self.ot_config['f1']
         else:
             f1 = (np.max(D1)/np.max(D01))**2
-        tmap = self.compute_transport_map(D0+S0,D1+S1,D01,f0,f1,t0,t1,verbose)
+        tmap = self.compute_transport_map(D0+S0,D1+S1,D01,f0,f1,t0,t1,method,verbose)
         return tmap
     def compute_distance_matrices(self,t0,t1,verbose=False):
         """
