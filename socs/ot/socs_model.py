@@ -153,8 +153,8 @@ class SOCSModel:
         """
         if(verbose):
             print('Computing Distance Matrices')
-        adata_0 = self.adata[self.adata.obs[self.t_col]==t0,:]
-        adata_1 = self.adata[self.adata.obs[self.t_col]==t1,:]
+        adata_0 = self.adata[self.adata.obs[self.time_key]==t0,:]
+        adata_1 = self.adata[self.adata.obs[self.time_key]==t1,:]
         if(self.expr_key==None):
             expr_0 = adata_0.X
             expr_1 = adata_1.X
@@ -194,8 +194,8 @@ class SOCSModel:
         """
         if(verbose):
             print('Computing Structural Contiguity Distance Matrices')
-        adata_0 = self.adata[self.adata.obs[self.t_col]==t0,:]
-        adata_1 = self.adata[self.adata.obs[self.t_col]==t1,:]
+        adata_0 = self.adata[self.adata.obs[self.time_key]==t0,:]
+        adata_1 = self.adata[self.adata.obs[self.time_key]==t1,:]
         S_0 = np.zeros([adata_0.shape[0],adata_0.shape[0]])
         S_1 = np.zeros([adata_1.shape[0],adata_1.shape[0]])
         beta_0 = adata_0.obs[self.struct_key]
@@ -270,8 +270,8 @@ class SOCSModel:
                                     nits_sinkhorn=10, tol_sinkhorn=1e-9,
                                     two_outputs=False,print_per_iter=None,alt=0)
         elif(self.method=='fugw_gpu'):
-            adata_0 = self.adata[self.adata.obs[self.t_col]==t0,:]
-            adata_1 = self.adata[self.adata.obs[self.t_col]==t1,:]
+            adata_0 = self.adata[self.adata.obs[self.time_key]==t0,:]
+            adata_1 = self.adata[self.adata.obs[self.time_key]==t1,:]
             if(self.expr_key==None):
                 expr_0 = adata_0.X
                 expr_1 = adata_1.X
