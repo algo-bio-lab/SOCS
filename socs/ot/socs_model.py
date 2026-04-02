@@ -40,12 +40,31 @@ class SOCSModel:
         #                 'nIters':30,'print_per_iter':None,'struct_excl':[]}
         #for k in kwargs.keys():
         #    self.ot_config[k] = kwargs[k]
-    def infer_map(self,t0,t1,verbose=False):
+    def infer_map(
+            self,
+            t0,
+            t1,
+            alpha=0.5,
+            epsilon=0.01,
+            rho1=100
+            rho2=100,
+            fb0=None,
+            fb1=None,
+            f0=None,
+            f1=None,
+            max_iters=1000,
+            struct_excl=[],
+            verbose=False
+        ):
         """
         Solves the SOCS optimal transport problem, estimating ancestor-descendant relationships between two timepoints.
 
         Parameters
         ----------
+        t0:
+            Source time-point label, as stored in self.adata.obs[self.time_key].
+        t1:
+            Target time-point label, as stored in self.adata.obs[self.time_key].
         alpha: float
             Value between 0 and 1 that trades off geometric consistency and gene-expression consistency between ancestors and descendants.
             Smaller values of alpha will lead to 
@@ -66,10 +85,11 @@ class SOCSModel:
             Normalization factor to account for the differenc in magnitude between the expression distance matrix and t0 geometric distance matrix
         f1: float
             Normalization factor to account for difference in magnitude between the expression distance matrix and t1 geometric distance matrix
-        t0:
-            Source time-point label, as stored in self.adata.obs[self.time_key].
-        t1:
-            Target time-point label, as stored in self.adata.obs[self.time_key].
+        max_iters: int
+            Maximum iterations for the optimal transport solver.
+        struct_excl: list
+            List of structure labels to be excluded from the structural constraint. That is, if there are any labeled structures which are not expected
+            to evolve as a unit, they should be listed here.
         
             
         Returns
@@ -77,6 +97,7 @@ class SOCSModel:
         tmap: np.ndarray
             Map from ancestor cells in the source (t0) dataset to descendant cells in the target (t1) dataset.
         """
+        self.ot_config = {'eps':epsilon,'alpha':alpha,'rho':rho1,'rho2':rho2,'nIters':max_iters,'struct_excl':struct_excl}
         D0,D1,D01 = self.compute_distance_matrices(t0,t1,verbose)
         if('fb0' in self.ot_config.keys()):
             fb_0 = self.ot_config['fb0']
