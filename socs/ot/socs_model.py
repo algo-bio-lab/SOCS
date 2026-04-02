@@ -263,13 +263,13 @@ class SOCSModel:
         D01 = torch.tensor(D01,dtype=torch.float64)
         D0 = torch.tensor(D0,dtype=torch.float64)
         D1 = torch.tensor(D1,dtype=torch.float64)
-        if(self.method=='fugw_cpu'):
+        if(method=='fugw_cpu'):
             pi_01, gamma = log_ugw_sinkhorn_f(p0, D0/f0, p1, D1/f1, D01, self.ot_config['alpha'], init=None, eps=self.ot_config['eps'],
                                     rho=self.ot_config['rho'], rho2=self.ot_config['rho2'],
                                     nits_plan=self.ot_config['nIters'], tol_plan=1e-30,
                                     nits_sinkhorn=10, tol_sinkhorn=1e-9,
                                     two_outputs=False,print_per_iter=None,alt=0)
-        elif(self.method=='fugw_gpu'):
+        elif(method=='fugw_gpu'):
             adata_0 = self.adata[self.adata.obs[self.time_key]==t0,:]
             adata_1 = self.adata[self.adata.obs[self.time_key]==t1,:]
             if(self.expr_key==None):
