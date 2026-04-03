@@ -428,7 +428,7 @@ def struct_edge_dist(adata,filenames,spatial_key='spatial',struct_key='struct'):
     adata_r.uns['structs']['edge_dist'] = np.min(edge_dists,axis=1)
     return adata_r
 
-def structs_to_cells(adata):
+def structs_to_cells(adata,struct_key='struct'):
     """
     For each column in adata.uns['structs'], adds a column to adata.obs giving the value of that column for the structure associated
     with each cell.
@@ -437,6 +437,8 @@ def structs_to_cells(adata):
     ----------
     adata: anndata.AnnData
         AnnData object with labeled structures
+    struct_key: str
+        Column in adata.obs in which structure labels are found.
     
     Returns
     -------
@@ -449,7 +451,7 @@ def structs_to_cells(adata):
     for y in struct_columns:
         cell_struct_data = np.zeros([adata.shape[0],])
         for x in range(adata.shape[0]):
-            cell_struct_data[x] = adata.uns['structs'].loc[adata.obs['struct'][x]][y]
+            cell_struct_data[x] = adata.uns['structs'].loc[adata.obs[struct_key][x]][y]
         adata_r.obs['struct_'+y] = cell_struct_data
     return adata_r
 
@@ -625,7 +627,9 @@ def de_overlapping_arr(test_res):
 
 def diffExpr_fn(adata_src,adata_tgt,pi):
     adata_src = getInds(adata_src,adata_tgt,pi,False)
-    X_src = adata_counts(adata_src)
+    X_src = adata_src.X
+    if(isinstance(X_src,scipy.sparse._csr.csr_matrix)):
+        X_src = X_src.toarray()
     X_src_1 = X_src[adata_src.obs['transport_0']==1.0,:]
     X_src_2 = X_src[adata_src.obs['transport_0']==2.0,:]
     X_src_both = np.concatenate([X_src_1,X_src_2])
