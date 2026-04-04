@@ -344,7 +344,7 @@ def follicle_radial_dist(adata,spatial_key='spatial',struct_key='struct'):
         adata_r = struct_centroids(adata_r)
     xy_all = get_ctr(adata_r.obsm[spatial_key])
     struct_labels = np.array(adata_r.obs['struct'].tolist())
-    structs_u = adata_r.uns['structs'].index.tolist()
+    structs_u = adata_r.uns[struct_key].index.tolist()
     nStructs = len(structs_u)
     struct_rads = np.zeros([nStructs,])
     for x in range(nStructs):
