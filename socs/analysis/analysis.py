@@ -358,7 +358,7 @@ def follicle_radial_dist(adata,spatial_key='spatial',struct_key='struct'):
     return adata_r
 
     
-def cell_edge_dist(adata,filenames,spatial_key='spatial',struct_key='struct'):
+def cell_edge_dist(adata,filenames,spatial_key='spatial'):
     """
     Computes the minimum distance of each cell to a boundary defined by an ordered set of coordinates, and adds this value as a column in adata.obs
     named "edge_dist".
