@@ -71,7 +71,9 @@ class SOCSModel:
             Target time-point label, as stored in self.adata.obs[self.time_key].
         alpha: float
             Value between 0 and 1 that trades off geometric consistency and gene-expression consistency between ancestors and descendants.
-            Smaller values of alpha will lead to 
+            Smaller values of alpha will lead to maps with greater geometric consistency and potentially less gene-expression consistency.
+            Correspondigly, Larger values of alpha will lead to maps with greater gene-expression consistency and potentially less geometric
+            consistency.
         epsilon: float
             Value controlling entropy regularization of the optimal transport problem. Higher values of epsilon will lead to more entropic
             maps, with individual cells in the source (t1) dataset mapping to more cells in the target (t2) dataset.
