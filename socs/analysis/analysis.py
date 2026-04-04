@@ -553,7 +553,8 @@ def neighborhood_n_layers_e(xy_1,xy_2,xy_e,n,t):
     layers[inds_n0] = 0
     xy_layer = copy.deepcopy(xy_1)
     xy_cat = copy.deepcopy(xy_1)
-    xy_cat = np.concatenate([xy_cat,xy_e],axis=0)
+    if xy_e is not None:
+        xy_cat = np.concatenate([xy_cat,xy_e],axis=0)
     for x in range(n):
         xy_layer,inds_n = neighbors_delaunay_t_exclude(xy_layer,xy_2,xy_cat,t)
         xy_cat = np.concatenate([xy_cat,xy_layer],axis=0)
