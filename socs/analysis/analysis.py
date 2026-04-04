@@ -303,7 +303,7 @@ def struct_centroids(adata,spatial_key='spatial',struct_key='struct'):
     adata_r = adata.copy()
     if 'structs' not in adata_r.uns:
         adata_r = add_struct_df(adata_r)
-    struct_labels = np.array(adata_r.obs['struct'].tolist())
+    struct_labels = np.array(adata_r.obs[struct_key].tolist())
     structs_u = adata_r.uns['structs'].index.tolist()
     nStructs = len(structs_u)
     struct_ctrs = np.zeros([nStructs,2])
@@ -417,7 +417,7 @@ def struct_edge_dist(adata,filenames,spatial_key='spatial',struct_key='struct'):
     if 'structs' not in adata_r.uns:
         adata_r = add_struct_df(adata_r)
     if 'centroid_x' not in adata_r.uns['structs']:
-        adata_r = struct_centroids(adata_r)
+        adata_r = struct_centroids(adata_r,spatial_key=spatial_key,struct_key=struct_key)
     edge_dists = np.zeros([adata_r.uns['structs'].shape[0],len(filenames)])
     pts = [shapely.geometry.Point(adata_r.uns['structs']['centroid_x'].iloc[x],adata_r.uns['structs']['centroid_y'].iloc[x]) for x in range(adata_r.uns['structs'].shape[0])]
     for x in range(len(filenames)):
