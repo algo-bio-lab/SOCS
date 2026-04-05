@@ -455,7 +455,7 @@ def structs_to_cells(adata,struct_key='struct'):
         adata_r.obs['struct_'+y] = cell_struct_data
     return adata_r
 
-def mapping_DE(adata_src,adata_tgt,obs_key_src,obs_key_tgt,obs_val_src,obs_val_tgt_1,obs_val_tgt_2,T):
+def mapping_DE(adata_src,adata_tgt,obs_key_src,obs_key_tgt,obs_val_src,obs_val_tgt_1,obs_val_tgt_2,T,expr_key_src=None,min_fc,min_q,plot_volcano=False):
     """
     Identifies differentially expressed genes in a population of cells in the t0 dataset, based on the population of cells in the t1 dataset
     to which the t0 cells map.
@@ -478,11 +478,47 @@ def mapping_DE(adata_src,adata_tgt,obs_key_src,obs_key_tgt,obs_val_src,obs_val_t
         Value of adata_tgt.obs[obs_key_tgt] identifying the other population in the t2 dataset
     T: np.ndarray
         Transport map from source distribution to target distribution.
-    
+    expr_key_src: str
+        Key in adata_src.obsm in which raw gene expression data is stored. If None, adata_src.X is used.
+    min_fc: float
+
+    min_q: float
+
+    plot_volcano: bool
+        If true, make a volcano plot depicting the differential expression between the two populations in adata_src.
     Returns
     -------
-    
+
     """
+    if expr_key_src is None:
+        X_src = adata_src.X
+    else:
+        X_src = adata_src.obsm[expr_key_src]
+    clsts_mapped = map_vector_sampled(adata_tgt.obs[obs_key_tgt],T)
+    inds_obs_src = np.where(adata_src.obs[obs_key_src]==obs_val_src)[0]
+    X_src_obs = X_src[inds_obs_src,:]
+    clsts_mapped_obs = [clsts_mapped[x] for x in inds_obs_src]
+    inds_mapped_obs_1 = np.where(clsts_mapped_obs==obs_val_tgt_1)[0]
+    inds_mapped_obs_2 = np.where(clsts_mapped_obs==obs_val_tgt_2)[0]
+    X_src_obs_1 = X_src_obs[inds_mapped_obs_1,:]
+    X_src_obs_2 = X_src_obs[inds_mapped_obs_2,:]
+    X_src_obs_cat = np.concatenate([X_src_obs_1,X_src_obs_2])
+    condition_numbers = np.concatenate([np.zeros([X_src_obs_1.shape[0],1]),np.ones([X_src_obs_2.shape[0],1])],axis=0)
+    ad_src_obs_cat = ad.AnnData(X_src_obs_cat)
+    ad_src_obs_cat.obs['condition'] = condition_numbers
+    t = de.test.wald(
+        data=ad_src_obs_cat,
+        formula_loc="~ 1 + condition",
+        factor_loc_totest="condition"
+    )
+    logfc = t.log2_fold_change()
+    qvals = -t.log10_qval_clean(log10_threshold=-30)
+    inds_lfc = np.where(np.abs(logfc)<10)[0] #filter out outlier DEGs
+    logfc_l = logfc[inds_lfc]
+    qvals_l = logfc[inds_lfc]
+
+
+
 
 def get_deg_bool(deg_test,min_fc,min_q):
     logfc = deg_test.log2_fold_change()
