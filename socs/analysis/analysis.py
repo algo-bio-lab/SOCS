@@ -455,6 +455,34 @@ def structs_to_cells(adata,struct_key='struct'):
         adata_r.obs['struct_'+y] = cell_struct_data
     return adata_r
 
+def mapping_DE(adata_src,adata_tgt,obs_key_src,obs_key_tgt,obs_val_src,obs_val_tgt_1,obs_val_tgt_2,T):
+    """
+    Identifies differentially expressed genes in a population of cells in the t0 dataset, based on the population of cells in the t1 dataset
+    to which the t0 cells map.
+
+    Parameters
+    ----------
+    adata_src: anndata.AnnData
+        AnnData object representing the source (t0) dataset
+    adata_tgt: anndata.AnnData
+        AnnData object representing the target (t1) dataset
+    obs_key_src: str
+        Column in adata_src.obs whose labels identify the original population on which to perform differential expression analysis
+    obs_key_tgt: str
+        Key in adata_tgt.obs whose labels identify the populations to which the source population cells map
+    obs_val_src:
+        Value of adata_src.obs[obs_key_src] identifying the original population in the t0 dataset on which to perform DE analysis
+    obs_val_tgt_1:
+        Value of adata_tgt.obs[obs_key_tgt] identifying one population in the t1 dataset
+    obs_val_tgt_2:
+        Value of adata_tgt.obs[obs_key_tgt] identifying the other population in the t2 dataset
+    T: np.ndarray
+        Transport map from source distribution to target distribution.
+    
+    Returns
+    -------
+    
+    """
 
 def get_deg_bool(deg_test,min_fc,min_q):
     logfc = deg_test.log2_fold_change()
