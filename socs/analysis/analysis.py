@@ -12,6 +12,7 @@ from socs.utils import row_normalize
 from scipy.stats import entropy
 import shapely
 import copy
+import matplotlib.pyplot as plt
 
 def hillNumber_1(A):
     """
@@ -454,6 +455,76 @@ def structs_to_cells(adata,struct_key='struct'):
             cell_struct_data[x] = adata.uns['structs'].loc[adata.obs[struct_key][x]][y]
         adata_r.obs['struct_'+y] = cell_struct_data
     return adata_r
+
+def mapping_DE(adata_src,adata_tgt,obs_key_src,obs_key_tgt,obs_val_src,obs_val_tgt_1,obs_val_tgt_2,T,min_fc,min_q,expr_key_src=None,plot_volcano=False):
+    """
+    Identifies differentially expressed genes in a population of cells in the t0 dataset, based on the population of cells in the t1 dataset
+    to which the t0 cells map.
+
+    Parameters
+    ----------
+    adata_src: anndata.AnnData
+        AnnData object representing the source (t0) dataset
+    adata_tgt: anndata.AnnData
+        AnnData object representing the target (t1) dataset
+    obs_key_src: str
+        Column in adata_src.obs whose labels identify the original population on which to perform differential expression analysis
+    obs_key_tgt: str
+        Key in adata_tgt.obs whose labels identify the populations to which the source population cells map
+    obs_val_src:
+        Value of adata_src.obs[obs_key_src] identifying the original population in the t0 dataset on which to perform DE analysis
+    obs_val_tgt_1:
+        Value of adata_tgt.obs[obs_key_tgt] identifying one population in the t1 dataset
+    obs_val_tgt_2:
+        Value of adata_tgt.obs[obs_key_tgt] identifying the other population in the t2 dataset
+    T: np.ndarray
+        Transport map from source distribution to target distribution.
+    expr_key_src: str
+        Key in adata_src.obsm in which raw gene expression data is stored. If None, adata_src.X is used.
+    plot_volcano: bool
+        If true, make a volcano plot depicting the differential expression between the two populations in adata_src.
+    Returns
+    -------
+    logfc: np.ndarray
+        Log-2 fold change in gene expression between cells in the source dataset that map to obs_val_tgt_1 and cells in the source
+        dataset that map to obs_val_tgt_2, in the same order of the genes in adata_src.var_names.
+    qvals: np.ndarray
+        -log10 of the corrected p-values of the differential expression analysis.
+    """
+    if expr_key_src is None:
+        X_src = adata_src.X
+    else:
+        X_src = adata_src.obsm[expr_key_src]
+    clsts_mapped = map_vector_sampled(adata_tgt.obs[obs_key_tgt],T)
+    inds_obs_src = np.where(adata_src.obs[obs_key_src]==obs_val_src)[0]
+    X_src_obs = X_src[inds_obs_src,:]
+    clsts_mapped_obs = [clsts_mapped[x] for x in inds_obs_src]
+    inds_mapped_obs_1 = np.where(clsts_mapped_obs==obs_val_tgt_1)[0]
+    inds_mapped_obs_2 = np.where(clsts_mapped_obs==obs_val_tgt_2)[0]
+    X_src_obs_1 = X_src_obs[inds_mapped_obs_1,:]
+    X_src_obs_2 = X_src_obs[inds_mapped_obs_2,:]
+    X_src_obs_cat = np.concatenate([X_src_obs_1,X_src_obs_2])
+    condition_numbers = np.concatenate([np.zeros([X_src_obs_1.shape[0],1]),np.ones([X_src_obs_2.shape[0],1])],axis=0)
+    ad_src_obs_cat = ad.AnnData(X_src_obs_cat)
+    ad_src_obs_cat.obs['condition'] = condition_numbers
+    t = de.test.wald(
+        data=ad_src_obs_cat,
+        formula_loc="~ 1 + condition",
+        factor_loc_totest="condition"
+    )
+    logfc = t.log2_fold_change()
+    qvals = -t.log10_qval_clean(log10_threshold=-30)
+    inds_lfc = np.where(np.abs(logfc)<10)[0] #filter out outlier DEGs
+    logfc_l = logfc[inds_lfc]
+    qvals_l = logfc[inds_lfc]
+    inds_degs = np.where(np.logical_and(qvals_l>min_q,np.abs(logfc_l)>min_fc))[0]
+    if(plot_volcano):
+        plt.scatter(logfc_l,qvals_l,s=5,c='#DDDDDD')
+        plt.scatter(logfc_l[inds_degs],qvals_l[inds_degs],s=5,c='red')
+    return logfc,qvals
+    
+
+
 
 
 def get_deg_bool(deg_test,min_fc,min_q):
