@@ -12,6 +12,7 @@ from socs.utils import row_normalize
 from scipy.stats import entropy
 import shapely
 import copy
+import matplotlib.pyplot as plt
 
 def hillNumber_1(A):
     """
@@ -455,7 +456,7 @@ def structs_to_cells(adata,struct_key='struct'):
         adata_r.obs['struct_'+y] = cell_struct_data
     return adata_r
 
-def mapping_DE(adata_src,adata_tgt,obs_key_src,obs_key_tgt,obs_val_src,obs_val_tgt_1,obs_val_tgt_2,T,expr_key_src=None,plot_volcano=False):
+def mapping_DE(adata_src,adata_tgt,obs_key_src,obs_key_tgt,obs_val_src,obs_val_tgt_1,obs_val_tgt_2,T,min_fc,min_q,expr_key_src=None,plot_volcano=False):
     """
     Identifies differentially expressed genes in a population of cells in the t0 dataset, based on the population of cells in the t1 dataset
     to which the t0 cells map.
