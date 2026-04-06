@@ -169,7 +169,7 @@ def struct_average_obs(adata,obs_name,struct_key='struct'):
     adata_r = adata.copy()
     if 'structs' not in adata_r.uns:
         adata_r = add_struct_df(adata,struct_key=struct_key)
-    struct_ids = adata_r.uns['struct'].index.tolist()
+    struct_ids = adata_r.uns['structs'].index.tolist()
     avg_mkr = np.zeros([len(struct_ids),])
     for x in range(len(struct_ids)):
         inds_x = np.where(adata.obs[struct_key]==struct_ids[x])[0]
