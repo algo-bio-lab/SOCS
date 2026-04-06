@@ -108,7 +108,7 @@ def struct_average(adata,geneName,struct_key='struct'):
     """
     adata_r = adata.copy()
     if 'structs' not in adata_r.uns:
-        adata_r = add_struct_df(adata_r)
+        adata_r = add_struct_df(adata_r,struct_key=struct_key)
     struct_ids = np.unique(adata_r.obs[struct_key])
     avg_mkr = np.zeros([len(struct_ids),])
     for x in range(len(struct_ids)):
@@ -168,7 +168,7 @@ def struct_average_obs(adata,obs_name,struct_key='struct'):
     """
     adata_r = adata.copy()
     if 'structs' not in adata_r.uns:
-        adata_r = add_struct_df(adata)
+        adata_r = add_struct_df(adata,struct_key=struct_key)
     struct_ids = adata_r.uns['struct'].index.tolist()
     avg_mkr = np.zeros([len(struct_ids),])
     for x in range(len(struct_ids)):
@@ -196,7 +196,7 @@ def structSize(adata,struct_key='struct'):
     """
     adata_r = adata.copy()
     if 'structs' not in adata_r.uns:
-        adata_r = add_struct_df(adata_r)
+        adata_r = add_struct_df(adata_r,struct_key=struct_key)
     struct_labels = np.array(adata_r.obs[struct_key].tolist())
     structs_u = adata_r.uns['structs'].index.tolist()
     nStructs = len(structs_u)
@@ -260,7 +260,7 @@ def struct_diameters_angles(adata,struct_key='struct'):
     """
     adata_r = adata.copy()
     if 'structs' not in adata_r.uns:
-        adata_r = add_struct_df(adata_r)
+        adata_r = add_struct_df(adata_r,struct_key=struct_key)
     struct_labels = np.array(adata_r.obs[struct_key].tolist())
     structs_u = adata_r.uns['structs'].index.tolist()
     nStructs = len(structs_u)
@@ -303,7 +303,7 @@ def struct_centroids(adata,spatial_key='spatial',struct_key='struct'):
     """
     adata_r = adata.copy()
     if 'structs' not in adata_r.uns:
-        adata_r = add_struct_df(adata_r)
+        adata_r = add_struct_df(adata_r,struct_key=struct_key)
     struct_labels = np.array(adata_r.obs[struct_key].tolist())
     structs_u = adata_r.uns['structs'].index.tolist()
     nStructs = len(structs_u)
@@ -340,7 +340,7 @@ def follicle_radial_dist(adata,spatial_key='spatial',struct_key='struct'):
     """
     adata_r = adata.copy()
     if 'structs' not in adata_r.uns:
-        adata_r = add_struct_df(adata_r)
+        adata_r = add_struct_df(adata_r,struct_key=struct_key)
     if 'centroid_x' not in adata_r.uns['structs']:
         adata_r = struct_centroids(adata_r)
     xy_all = get_ctr(adata_r.obsm[spatial_key])
@@ -416,7 +416,7 @@ def struct_edge_dist(adata,filenames,spatial_key='spatial',struct_key='struct'):
     """
     adata_r = adata.copy()
     if 'structs' not in adata_r.uns:
-        adata_r = add_struct_df(adata_r)
+        adata_r = add_struct_df(adata_r,struct_key=struct_key)
     if 'centroid_x' not in adata_r.uns['structs']:
         adata_r = struct_centroids(adata_r,spatial_key=spatial_key,struct_key=struct_key)
     edge_dists = np.zeros([adata_r.uns['structs'].shape[0],len(filenames)])
