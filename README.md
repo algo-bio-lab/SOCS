@@ -13,7 +13,10 @@ To reproduce Fig. 1 of our manuscript, run the notebooks `lung_processing_notebo
 
 ## Using SOCS
 SOCS is fairly straightforward to use. To use SOCS to do trajectory inference on your spatial transcriptomics data, first format your data as AnnData objects, e.g. `adata`, with gene expression stored as a count table in `adata.X`, spatial x-y coordinates stored in `adata.obsm['spatial']`, and spatially contiguous structure labels stored in `adata.obs['struct']`, and time-point labels stored in `adata.obs['time']`. Perform dimensionality reduction if desired.\
-Choose the following parameters: `alpha` (a value between 0 and 1), which trades off spatial consistency with genetic consistency, `eps`, which controls the entropy of the inferred transport map (as `eps` increases, the map is more "spread out"), and `rho1` and `rho2` which control the "unbalancedness" of the problem.\
+Choose the following parameters: `alpha` (a value between 0 and 1, default 0.5), which trades off spatial consistency with genetic consistency, `eps` (default 0.01), which controls the entropy of the inferred transport map (as `eps` increases, the map is more "spread out"), and `rho` which controls the "unbalancedness" of the problem (default 100).\
+
+In selecting a value of `alpha`, we suggest choosing a value that results in a high proportion of t_1 cells mapping to cells of the same cell type at t_2, and a high value of geometric consistency. Typically, this value is between `alpha=0.1` and `alpha=0.5`, in the CPU-processed case. We find that, when using GPU acceleration, lower values of `alpha` tend to be optimal, between 1E-05 and 1E-03. In selecting a value of `eps`, we pick a value that results in the median degree-1 Hill number of the rows of T is between 1 and 2. We find that this is typically between `eps=0.001` and `eps=0.01`. In selecting a value of `rho`, we find that values around `rho=100` are typically optimal. 
+
 To set up the SOCS problem, initialize the class socs.ot.SOCSModel:\
 `socs_model = socs.ot.SOCSModel(adata,'time',expr_key='X_pca',struct_key='struct')`
 
