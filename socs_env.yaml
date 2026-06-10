@@ -19,6 +19,7 @@ dependencies:
     - scipy==1.13.1
     - shapely==2.0.5
     - torch==2.5.1
+    - scvelo==0.3.3
     - leidenalg
     - networkx
     - fugw
