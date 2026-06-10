@@ -8,8 +8,8 @@ To install SOCS, download this repository directly, and add the folder named `so
 ## Getting Started
 To confirm that SOCS has been installed correctly, run the notebook `simple_test.ipynb`, which runs SOCS on a very small sample of MERFISH data.
 
-## Reproducing Figures
-To reproduce Fig. 1 of our manuscript, run the notebooks `lung_processing_notebook.ipynb` and `lung_analysis_notebook.ipynb`. To reproduce Fig. 2 of our manuscript, run the notebook `ovary_analysis_notebook.ipynb`.
+## SOCS Processing and analysis notebooks
+The notebooks provided here demonstrate how to use SOCS.  The notebooks `lung_processing_notebook.ipynb` and `lung_analysis_notebook.ipynb` demonstrate the analyis shown in Fig. 2 of our manuscript. The notebook `ovary_analysis_notebook.ipynb` demonstrate the analysis shown in Figs. 5 and 6 of our manuscript. The notebook `synthetic_data_notebook.ipynb` shows how to generate synthetic data, as shown in Fig. 1 of our manuscript.
 
 ## Using SOCS
 SOCS is fairly straightforward to use. To use SOCS to do trajectory inference on your spatial transcriptomics data, first format your data as AnnData objects, e.g. `adata`, with gene expression stored as a count table in `adata.X`, spatial x-y coordinates stored in `adata.obsm['spatial']`, and spatially contiguous structure labels stored in `adata.obs['struct']`, and time-point labels stored in `adata.obs['time']`. Perform dimensionality reduction if desired.\
